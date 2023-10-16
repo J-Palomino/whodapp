@@ -4,5 +4,5 @@
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
   "/api/trpc/[trpc]": "pages/api/trpc/[trpc].js",
-  "/vision": "pages/vision.js"
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js"
 }

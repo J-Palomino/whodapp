@@ -2,101 +2,125 @@ import * as faceapi from "face-api.js";
 import * as vision from "@/utils/vision";
 import { api } from "@/utils/api";
 import { useState } from "react";
-import { number } from "zod";
+
 import $ from "jquery";
+import { DrawFaceLandmarksInput, TDrawDetectionsInput } from "face-api.js/build/commonjs/draw";
+import { relative } from "path";
 
 
 
 export default function Vision() {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
   const [withBoxes, setWithBoxes] = useState(true);
 
   let forwardTimes: number[] = [];
 
-  const updateTimeStats = (timeInMs: number) => {
-    forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30);
-    const avgTimeInMs =
-      forwardTimes.reduce((total, t) => total + t) / forwardTimes.length;
-    $("#time").val(`${Math.round(avgTimeInMs)} ms`);
-    $("#fps").val(`${faceapi.utils.round(1000 / avgTimeInMs)}`);
-  };
+  let stream;
+  if (typeof window !== "undefined") {
+    stream = async () => {
+      const TINY_FACE_DETECTOR = "tiny_face_detector";
+      await vision.changeFaceDetector(TINY_FACE_DETECTOR);
+      await faceapi.loadFaceLandmarkModel("./../../");
+      vision.changeInputSize(224);
+      const video: MediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {},
+      });
+      const videoEl = $("#inputVideo").get(0) as HTMLVideoElement;
+      videoEl.srcObject = video;
+      return video;
+    };
+    stream();
+  }
+    const updateTimeStats = (timeInMs: number) => {
+      forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30);
+      const avgTimeInMs =
+        forwardTimes.reduce((total, t) => total + t) / forwardTimes.length;
+      $("#time").val(`${Math.round(avgTimeInMs)} ms`);
+      $("#fps").val(`${faceapi.utils.round(1000 / avgTimeInMs)}`);
+    };
+    let results: any = [];
 
-//   async function onPlay(): Promise<any> {
-//     const videoEl = $("#inputVideo").get(0);
+    const onPlay: any = async () => {
+      let videoEl: HTMLVideoElement = document.createElement(
+        "video",
+      ) as HTMLVideoElement;
+      if ($("#inputVideo").get(0) !== undefined) {
+        videoEl = $("#inputVideo")?.get(0) as HTMLVideoElement;
+      }
 
-//     // if (videoEl?.paused || videoEl?.ended || !vision.isFaceDetectionModelLoaded())
-//     //   return setTimeout(() => onPlay());
+      if (
+        videoEl?.paused ||
+        videoEl?.ended ||
+        !vision.isFaceDetectionModelLoaded()
+      ) {
+        return setTimeout(() => onPlay());
+      }
 
-//     const options = vision.getFaceDetectorOptions();
+      const options = vision.getFaceDetectorOptions();
 
-//     const ts = Date.now();
+      const ts = Date.now();
 
-//     const result = await faceapi
-//       .detectSingleFace(videoEl, options)
-//       .withFaceLandmarks();
+      results = await faceapi
+        .detectSingleFace(videoEl, options)
+        .withFaceLandmarks();
 
-//     updateTimeStats(Date.now() - ts);
+      updateTimeStats(Date.now() - ts);
 
-//     if (result) {
-//       const canvas = $("#overlay").get(0);
-//     //   const dims = faceapi.matchDimensions(canvas, videoEl, true);
-//     //   const resizedResult = faceapi.resizeResults(result, dims);
+      let canvas: HTMLCanvasElement = document.createElement(
+        "canvas",
+      ) as HTMLCanvasElement;
+      if ($("#overlay").get(0) !== undefined) {
+        canvas = $("#overlay").get(0) as HTMLCanvasElement;
+        console.log("canvas : ", canvas);
+      }
 
-//       if (withBoxes) {
-//         faceapi.draw.drawDetections(canvas, resizedResult);
-//       }
-//       faceapi.draw.drawFaceLandmarks(canvas, resizedResult);
-//     }
+      const dims = faceapi.matchDimensions(canvas, videoEl, true);
 
-//     setTimeout(() => onPlay());
-//   }
+      let resizedResult: TDrawDetectionsInput = {
+        detection: new faceapi.FaceDetection(
+          10,
+          new faceapi.Rect(10, 10, 10, 10),
+          new faceapi.Dimensions(10, 10),
+        ),
+      };
 
-  // function that returns a media stream await navigator.mediaDevices.getUserMedia({ video: {} })
-let stream;
-if (typeof window !== "undefined") {
-  stream = async () => {
-    const video: MediaStream = await navigator.mediaDevices.getUserMedia({
-      video: {},
-    });
-    const videoEl = $("#inputVideo").get(0) as HTMLVideoElement;
-    videoEl.srcObject = video;
-    return video;
-  };
-  stream();
-}
+      let landmarkResult: DrawFaceLandmarksInput = new faceapi.FaceLandmarks68(
+        [new faceapi.Point(10, 10)],
+        new faceapi.Dimensions(10, 10),
+        undefined,
+      );
+
+      console.log("result : ", JSON.stringify(results));
+      if (results !== undefined) {
+        resizedResult = faceapi.resizeResults(results, dims);
+        landmarkResult = faceapi.resizeResults(results, dims);
+      }
+
+      faceapi.draw.drawDetections(canvas, resizedResult);
+      faceapi.draw.drawFaceLandmarks(canvas, landmarkResult);
+      console.log("Overlay drawn");
+      requestAnimationFrame(onPlay);
+    };
+
+    // function that returns a media stream await navigator.mediaDevices.getUserMedia({ video: {} })
+
+ 
+    
+
   return (
     <>
       <div style={{ position: "relative" }} className="margin">
-        {/* <div className="row side-by-side">
-          <div id="selectList"></div>
-          <div className="row">
-            <input id="imgUrlInput" type="text" className="bold" />
-          </div>
-          <button className="waves-effect waves-light btn">Ok</button>
-          <input
-            id="queryImgUploadInput"
-            type="file"
-            className="waves-effect btn bold"
-            accept=".jpg, .jpeg, .png"
-          />
-        </div> */}
-
-    
         <video
+          onLoadedMetadata={() => onPlay()}
           id="inputVideo"
           autoPlay
           muted
           playsInline
           height={720}
-        >
-   
-        </video>
-        <div style={{ position: "relative" }} className="margin">
-          <img id="inputImg" src="" style={{ maxWidth: "800px" }} />
-          <canvas id="overlay" />
-        </div>
-        <canvas id="overlay" />
+          style={{ zIndex: 1 }}
+        ></video>
+        <canvas id="overlay" height={720} style={{ zIndex: 999 ,position:'absolute', top: 0,
+  left: 0}} />
       </div>
     </>
   );

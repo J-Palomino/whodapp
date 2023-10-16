@@ -1,19 +1,21 @@
 
 import * as faceapi from "face-api.js";
+
+import $ from "jquery";
 const SSD_MOBILENETV1 = "ssd_mobilenetv1";
 const TINY_FACE_DETECTOR = "tiny_face_detector";
 
-let selectedFaceDetector = SSD_MOBILENETV1;
+let selectedFaceDetector = TINY_FACE_DETECTOR ;
 
 // ssd_mobilenetv1 options
-let minConfidence = 0.5;
+let minConfidence = 0.05;
 
 // tiny_face_detector options
-let inputSize = 512;
+let inputSize = 720;
 let scoreThreshold = 0.5;
 
 export const getFaceDetectorOptions = () => {
-  return selectedFaceDetector === SSD_MOBILENETV1
+      return selectedFaceDetector === SSD_MOBILENETV1
     ? new faceapi.SsdMobilenetv1Options({ minConfidence })
     : new faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold });
 }
