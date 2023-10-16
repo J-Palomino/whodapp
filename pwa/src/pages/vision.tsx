@@ -6,6 +6,7 @@ import { number } from "zod";
 import $ from "jquery";
 
 
+
 export default function Vision() {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
 
@@ -53,8 +54,8 @@ export default function Vision() {
 
   // function that returns a media stream await navigator.mediaDevices.getUserMedia({ video: {} })
 let stream;
-if(!!Window){
-    stream = async () => {
+if (typeof window !== "undefined") {
+  stream = async () => {
     const video: MediaStream = await navigator.mediaDevices.getUserMedia({
       video: {},
     });
@@ -62,7 +63,7 @@ if(!!Window){
     videoEl.srcObject = video;
     return video;
   };
-  stream()
+  stream();
 }
   return (
     <>
