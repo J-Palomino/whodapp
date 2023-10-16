@@ -5,15 +5,6 @@ import { useState } from "react";
 import { number } from "zod";
 import $ from "jquery";
 
-console.log(faceapi.nets);
-// ageGenderNet
-// faceExpressionNet
-// faceLandmark68Net
-// faceLandmark68TinyNet
-// faceRecognitionNet
-// ssdMobilenetv1
-// tinyFaceDetector
-// tinyYolov2
 
 export default function Vision() {
   const hello = api.example.hello.useQuery({ text: "from tRPC" });
@@ -61,14 +52,18 @@ export default function Vision() {
 //   }
 
   // function that returns a media stream await navigator.mediaDevices.getUserMedia({ video: {} })
-const stream = async () => {
-    const video: MediaStream = await navigator.mediaDevices.getUserMedia({ video: {} });
+let stream;
+if(!!Window){
+    stream = async () => {
+    const video: MediaStream = await navigator.mediaDevices.getUserMedia({
+      video: {},
+    });
     const videoEl = $("#inputVideo").get(0) as HTMLVideoElement;
     videoEl.srcObject = video;
     return video;
-};
-
-stream();
+  };
+  stream()
+}
   return (
     <>
       <div style={{ position: "relative" }} className="margin">
