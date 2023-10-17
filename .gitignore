@@ -40,3 +40,8 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+*.gz
+pwa/.next/server/middleware-build-manifest.js
+pwa/bun.lockb
+pwa/public/sw.js.map
+pwa/.next/trace
