@@ -6,7 +6,6 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import DiscordProvider from "next-auth/providers/discord";
-import { ComethProvider } from "@cometh/connect-sdk";
 import { env } from "@/env.mjs";
 import { db } from "./db";
 
@@ -51,25 +50,7 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-    {
-      id: 'cometh',
-      name: 'Cometh Wallet',
-      type: 'oauth',
-      version: '2.0',
-      accessTokenUrl: 'https://cometh.io/oauth/token',
-      profileUrl: 'https://cometh.io/api/v1/user',
-      profile: (profile) => {
-        return {
-          id: profile.id,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-        };
-      },
-      clientId: process.env.COMETH_CLIENT_ID,
-      clientSecret: process.env.COMETH_CLIENT_SECRET,
-    },
+    })
 
     /**
      * ...add more providers here.
