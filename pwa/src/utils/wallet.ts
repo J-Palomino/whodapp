@@ -10,7 +10,11 @@ import { useState } from "react";
 import { useWalletContext } from "./useWalletContext";
 import { ethers } from "ethers";
 import countContractAbi from "../../contract/counterABI.json";
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> da1dead (added basic CRUD)
 export function useWalletAuth() {
   const {
     setWallet,

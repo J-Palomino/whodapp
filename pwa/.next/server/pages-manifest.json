@@ -3,10 +3,19 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
 <<<<<<< HEAD
+<<<<<<< HEAD
   "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
   "/": "pages/index.js",
   "/api/trpc/[trpc]": "pages/api/trpc/[trpc].js"
 =======
   "/": "pages/index.js"
 >>>>>>> c90061f (adds models)
+=======
+  "/": "pages/index.js"
+=======
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/": "pages/index.js",
+  "/api/trpc/[trpc]": "pages/api/trpc/[trpc].js"
+>>>>>>> ee99d4a (added basic CRUD)
+>>>>>>> da1dead (added basic CRUD)
 }
