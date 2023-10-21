@@ -1,0 +1,13 @@
+version: 'latest'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: develpment
+      POSTGRES_DB: whodapp
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
