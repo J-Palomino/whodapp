@@ -98,8 +98,11 @@ export default function Vision() {
 
       faceapi.draw.drawDetections(canvas, resizedResult);
       faceapi.draw.drawFaceLandmarks(canvas, landmarkResult);
+      let Opciones = new faceapi.draw.DrawBoxOptions({ label: "Face" });
+ 
       console.log("Overlay drawn");
       requestAnimationFrame(onPlay);
+
     };
 
     // function that returns a media stream await navigator.mediaDevices.getUserMedia({ video: {} })
