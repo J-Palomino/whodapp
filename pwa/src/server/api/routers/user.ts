@@ -12,7 +12,7 @@ export const userRouter = createTRPCRouter({
     getUsers: publicProcedure.query(({ ctx }) => {
         return ctx.db.user.findMany();
     }),
-    getUserById: protectedProcedure.query(({ ctx }) => {
+    getUserById: publicProcedure.query(({ ctx }) => {
         return ctx.db.user.findUnique({
             where: {
                 id: ctx.session.user.id,
@@ -23,12 +23,14 @@ export const userRouter = createTRPCRouter({
         name: z.string().nullish(),
         email: z.string().email().nullish(),
         image: z.string().url().nullish(),
+        wallet: z.string().nullish(),
     })).mutation(({ ctx, input }) => {
         return ctx.db.user.create({
             data: {
                 name: input.name,
                 email: input.email,
                 image: input.image,
+                wallet: input.wallet,
             },
         });
     }),
@@ -36,6 +38,7 @@ export const userRouter = createTRPCRouter({
         name: z.string().nullish(),
         email: z.string().email().nullish(),
         image: z.string().url().nullish(),
+        wallet: z.string().nullish(),
     })).mutation(({ ctx, input }) => {
         return ctx.db.user.update({
             where: {
@@ -45,6 +48,7 @@ export const userRouter = createTRPCRouter({
                 name: input.name,
                 email: input.email,
                 image: input.image,
+                wallet: input.wallet,
             },
         });
     }),

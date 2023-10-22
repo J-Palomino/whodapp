@@ -32,8 +32,8 @@ export const env = createEnv({
     // Add ` on ID and SECRET if you want to make sure they're not empty
     DISCORD_CLIENT_ID: z.string(),
     DISCORD_CLIENT_SECRET: z.string(),
-    TESTNET_RPC_URL: z.string().optional(),
-    COMETH_API_KEY: z.string().optional(),
+    TESTNET_RPC_URL: z.string(),
+    COMETH_API_KEY: z.string(),
 
 
   },

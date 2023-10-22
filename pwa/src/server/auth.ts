@@ -1,13 +1,16 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { type GetServerSidePropsContext } from "next";
+import CredentialsProvider from 'next-auth/providers/credentials'
+import {getAddress} from 'ethers'
+import NextAuth from "next-auth";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 import { env } from "@/env.mjs";
 import { db } from "./db";
+
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -19,6 +22,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: DefaultSession["user"] & {
       id: string;
+      address: string;
       // ...other properties
       // role: UserRole;
     };
@@ -36,21 +40,72 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
-  callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
-  },
+ 
   adapter: PrismaAdapter(db),
+
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    CredentialsProvider({
+      name: "Credentials",
+      credentials:{
+        address: {
+           label: "Address",
+            type: "text", 
+            placeholder: "0x..." 
+          },
+      },
+    async authorize(credentials)  {
+    if(Boolean(getAddress(credentials?.address!))){
+      return null
+    }
+    const user = await db.user.findUnique({
+      where: {
+        wallet: credentials?.address,
+      },
     })
+    if(!user){
+      return null
+    }
+    return{
+      id: user.id,
+      wallet: credentials?.address,
+    }
+    },
+    session: {
+      jwt: true,
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    },
+   jwt:{
+     secret: process.env.JWT_SECRET,
+   },
+   callbacks: {
+    async session ({ session, token }) {
+   session.address = token.sub
+   return {...session,
+   id: token.id,
+   address: token.address,
+  }
+   
+   },
+   jwt: async (token, user, account, profile, isNewUser) => {
+    if(user){
+      return {
+        ...token,
+         id: user.id,
+         address: user.wallet,
+        }
+    }
+   
+  }
+ },
+ secret: process.env.NEXT_AUTH_SECRET,
+  pages: {
+    signIn: '/',
+    signOut: '/',
+    error: '/',
+    newUser: '/',
+  },
+    
+}),
 
     /**
      * ...add more providers here.
@@ -62,6 +117,7 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+
 };
 
 /**

@@ -1,39 +1,41 @@
 "use client";
 
 import {
-  ComethProvider,
   ComethWallet,
   ConnectAdaptor,
   SupportedNetworks,
 } from "@cometh/connect-sdk";
 import { useState } from "react";
+import { signIn } from 'next-auth/react'
 import { useWalletContext } from "./useWalletContext";
-import { ethers } from "ethers";
-import countContractAbi from "../../contract/counterABI.json";
-<<<<<<< HEAD
 
-=======
- 
->>>>>>> da1dead (added basic CRUD)
+import { api } from "@/utils/api";
+
+
+
 export function useWalletAuth() {
+
   const {
     setWallet,
-    setProvider,
     wallet,
-    counterContract,
-    setCounterContract,
   } = useWalletContext();
+
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
-  const apiKey = process.env.COMETH_API_KEY;
-  const COUNTER_CONTRACT_ADDRESS = "0x3633A1bE570fBD902D10aC6ADd65BB11FC914624";
+  const apiKey ="0bb94c4c-3dc1-4adf-9d9a-fc84e397cec8";
+
+  const createUser = api.user.createUser.useMutation()
+  const getUser = api.user.getUserById.useQuery();
+  
+
 
   function displayError(message: string) {
     setConnectionError(message);
   }
+
 
   async function connect() {
     if (!apiKey) throw new Error("no apiKey provided");
@@ -50,6 +52,12 @@ export function useWalletAuth() {
       });
 
       const localStorageAddress = window.localStorage.getItem("walletAddress");
+      if(!getUser.data?.wallet){
+        createUser.mutate({wallet: localStorageAddress})
+
+      }
+      
+
 
       if (localStorageAddress) {
         await instance.connect(localStorageAddress);
@@ -59,19 +67,23 @@ export function useWalletAuth() {
         window.localStorage.setItem("walletAddress", walletAddress);
       }
 
-      const instanceProvider = new ComethProvider(instance);
-
-      const contract = new ethers.Contract(
-        COUNTER_CONTRACT_ADDRESS,
-        countContractAbi,
-        instanceProvider.getSigner()
-      );
-
-      setCounterContract(contract);
+      //const instanceProvider = new ComethProvider(instance);
 
       setIsConnected(true);
       setWallet(instance as any);
-      setProvider(instanceProvider as any);
+      try{
+        const callbackUrl ='/protected'
+        if(wallet?.getAddress && getUser.data?.wallet !== wallet?.getAddress()){
+          signIn('credentials', {address: wallet?.getAddress() as string, callbackUrl: callbackUrl})
+          return
+        };
+      }catch (e) {
+        displayError((e as Error).message);
+      }
+  
+      
+      
+
     } catch (e) {
       displayError((e as Error).message);
     } finally {
@@ -80,13 +92,11 @@ export function useWalletAuth() {
   }
 
   async function disconnect() {
+
     if (wallet) {
       try {
         await wallet!.logout();
-        setIsConnected(false);
-        setWallet(null);
-        setProvider(null);
-        setCounterContract(null);
+
       } catch (e) {
         displayError((e as Error).message);
       }
@@ -94,12 +104,11 @@ export function useWalletAuth() {
   }
   return {
     wallet,
-    counterContract,
     connect,
-    disconnect,
     isConnected,
     isConnecting,
     connectionError,
     setConnectionError,
+    
   };
 }
